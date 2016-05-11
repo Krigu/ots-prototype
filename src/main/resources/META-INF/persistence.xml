@@ -11,8 +11,8 @@
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/ots"/>
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
-			<property name="javax.persistence.jdbc.user" value="ctr"/>
-			<property name="javax.persistence.jdbc.password" value="1q2w3e4r"/>
+			<property name="javax.persistence.jdbc.user" value="root"/>
+			<property name="javax.persistence.jdbc.password" value="root"/>
 			<property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
 			<!--property name="javax.persistence.lock.timeout" value="1000"/-->
 			<!--property name="eclipselink.logging.level" value="SEVERE"/-->
