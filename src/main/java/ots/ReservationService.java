@@ -1,6 +1,8 @@
 package ots;
 
 import java.util.List;
+import java.util.Random;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -49,21 +51,56 @@ public class ReservationService {
 	/* Makes a seat reservation. */
 	public Seat[] makeReservation(String category, int numberOfSeats) {
 		entityManager.getTransaction().begin();
-		Query query = entityManager.createQuery("SELECT s FROM SeatEntity s WHERE s.category = :category AND s.reserved = false");
+		Query query = entityManager.createQuery("SELECT s FROM SeatEntity s WHERE s.category = :category AND s.reserved = false ORDER BY s.sector, s.row, s.number");
 		query.setParameter("category", category);
 		List<SeatEntity> entities = query.getResultList();
-		try {
-			Seat[] seats = new Seat[numberOfSeats];
-			for (int i = 0; i < numberOfSeats; i++) {
-				SeatEntity entity = entities.get(i);
-				seats[i] = new Seat(entity.getCategory(), entity.getSector(), entity.getRow(), entity.getNumber());
-				entity.setReserved(true);
+		int nSeatsAvailable = entities.size();
+		if ( nSeatsAvailable >= numberOfSeats )
+		{
+			try {
+				boolean adjacentSeatsFound=false;
+				int seatIndex=0;
+				
+				for ( int tryCount=0; !adjacentSeatsFound && tryCount <= 5; tryCount++ ){
+				
+					int randIdx = new Random().nextInt(nSeatsAvailable);
+					
+					SeatEntity entity = entities.get( randIdx );
+					int row = entity.getRow();
+					String sector = entity.getSector();
+					int j=1;
+					SeatEntity tmpEntity = entities.get( randIdx - j );
+					while ( tmpEntity.getRow() == row && tmpEntity.getSector().equals(sector) )
+					{
+						entity = tmpEntity;
+						j++;
+						tmpEntity = entities.get( randIdx - j );
+					}
+					
+					seatIndex=randIdx - j + 1;
+					
+					tmpEntity = entities.get( seatIndex + numberOfSeats - 1 );
+					if ( tmpEntity.getRow() == row && tmpEntity.getSector().equals(sector) )
+					{
+						adjacentSeatsFound=true;
+					}
+				}
+							
+				Seat[] seats = new Seat[numberOfSeats];
+				for (int i = 0; i < numberOfSeats; i++) {
+					SeatEntity entity = entities.get( seatIndex + i );	
+					seats[i] = new Seat(entity.getCategory(), entity.getSector(), entity.getRow(), entity.getNumber() );
+					entity.setReserved(true);
+				}
+				entityManager.getTransaction().commit();
+				return seats;
+			
+			} catch (IndexOutOfBoundsException ex) {
+				entityManager.getTransaction().rollback();
+				return null;
 			}
-			entityManager.getTransaction().commit();
-			return seats;
-		} catch (IndexOutOfBoundsException ex) {
-			entityManager.getTransaction().rollback();
-			return null;
 		}
+		entityManager.getTransaction().rollback();
+		return null;
 	}
 }

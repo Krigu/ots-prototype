@@ -22,6 +22,7 @@ public class ReservationTest {
 	private static final String RESULTS_FILE = "results.txt";
 	private static final String CSV_DELIMITER = ",";
 	private static final int NUMBER_THREADS = 100;
+	//private static final int NUMBER_THREADS = 1;
 	private static List<String> categories;
 	private static List<Seat> availableSeats;
 	private List<Seat> reservedSeats;
