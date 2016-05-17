@@ -5,8 +5,10 @@ import java.util.Random;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.OptimisticLockException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+
 
 /**
  * The class ReservationService implements a service that allows to make seat reservations.
@@ -97,6 +99,11 @@ public class ReservationService {
 			
 			} catch (IndexOutOfBoundsException ex) {
 				entityManager.getTransaction().rollback();
+				return null;
+			} catch (Exception ex) {
+				if ( entityManager.getTransaction().isActive()){
+					entityManager.getTransaction().rollback();
+				}
 				return null;
 			}
 		}

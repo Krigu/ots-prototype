@@ -1,18 +1,18 @@
 Seats
   available:     13660
-  reserved:      12553
-  remaining:     1107
+  reserved:      13066
+  remaining:     594
 Reservations
   total:         4000
-  rejected:      1135
-  adjacent:      2119
-  non-adjacent:  219
-  incorrect:     527
+  rejected:      1368
+  adjacent:      2219
+  non-adjacent:  262
+  incorrect:     151
 Latency Time
   minimum:       0.0s
-  maximum:       7.808s
-  average:       1.068s
-  deviation:     0.951s
+  maximum:       8.841s
+  average:       1.201s
+  deviation:     1.147s
 
-Total Time:      43s
-Throughput:      91 requests/s
+Total Time:      49s
+Throughput:      81 requests/s

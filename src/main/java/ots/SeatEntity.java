@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Version;
 
 /**
  * The class Sector contains the data of a sector of seats.
@@ -20,6 +21,16 @@ public class SeatEntity implements Serializable {
 	private int row;
 	private int number;
 	private boolean reserved;
+	@Version
+	private int version;
+	
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
+	}
 
 	public SeatEntity() {
 	}
