@@ -57,6 +57,7 @@ public class ReservationThread extends Thread {
 					+ random.nextInt(MAX_SEATS_RESERVATION - MIN_SEATS_RESERVATION + 1);
 			long startTime = System.currentTimeMillis();
 			Seat[] seats = reservationService.makeReservation(category, numberOfSeats);
+
 			long endTime = System.currentTimeMillis();
 			reservations.add(new Reservation(category, numberOfSeats, seats));
 			times.add(new long[]{startTime, endTime});
