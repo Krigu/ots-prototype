@@ -1,5 +1,7 @@
 package ots;
 
+import ots.strategy.JPAReservationStrategy;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -21,10 +23,10 @@ public class ReservationThread extends Thread {
 	private final List<Reservation> reservations;
 	private final List<long[]> times;
 
-	public ReservationThread(List<String> categories, CyclicBarrier barrier) {
+	public ReservationThread(Class<? extends JPAReservationStrategy> reservationStrategy, List<String> categories, CyclicBarrier barrier) {
 		this.categories = categories;
 		this.barrier = barrier;
-		reservationService = ReservationService.getInstance();
+		reservationService = ReservationService.getInstance(reservationStrategy);
 		reservations = new ArrayList<>();
 		times = new ArrayList<>();
 	}

@@ -1,4 +1,4 @@
-package ots;
+package ots.cache;
 
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
@@ -12,11 +12,14 @@ import net.sf.ehcache.search.Result;
 import net.sf.ehcache.search.Results;
 import net.sf.ehcache.search.aggregator.Aggregators;
 import net.sf.ehcache.search.impl.GroupedResultImpl;
+import ots.SeatEntity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
+/**
+ * Singleton with all non reserved seats. The cache could be synchronized over multiple application instances
+ */
 public class SeatCache {
 
     private final CacheManager cm;
@@ -25,7 +28,7 @@ public class SeatCache {
         cm = CacheManager.getInstance();
     }
 
-    public void buildCaches(Set<String> cacheNames) {
+    public void buildCaches(List<String> cacheNames) {
         for (String cacheName : cacheNames) {
             CacheConfiguration cacheConfig = new CacheConfiguration(cacheName, 0).eternal(true);
             Searchable searchable = new Searchable();

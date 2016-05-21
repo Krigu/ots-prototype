@@ -1,12 +1,14 @@
 package ots;
 
+import ots.cache.SeatCache;
+import ots.strategy.JPAReservationStrategy;
+import ots.strategy.ReservationStrategy;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.Persistence;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -14,19 +16,26 @@ import java.util.Set;
  */
 public class ReservationService {
 
-    private static final String PERSISTENCE_UNIT = "ots";
+    public static final String PERSISTENCE_UNIT = "ots";
     private final EntityManager entityManager;
 
     private static SeatCache seatCache = new SeatCache();
+    private final ReservationStrategy reservationStrategy;
 
     /* Returns an instance of the reservation service. */
-    public static ReservationService getInstance() {
-        return new ReservationService();
+    public static ReservationService getInstance(Class<? extends JPAReservationStrategy> jpaReservationStrategy) {
+        return new ReservationService(jpaReservationStrategy);
     }
 
-    private ReservationService() {
+    private ReservationService(Class<? extends JPAReservationStrategy> jpaReservationStrategy) {
         EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT);
         entityManager = factory.createEntityManager();
+
+        try {
+            reservationStrategy = jpaReservationStrategy.getConstructor(EntityManager.class).newInstance(entityManager);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Could not initialize ReservationStrategy");
+        }
     }
 
 
@@ -34,18 +43,10 @@ public class ReservationService {
     public static void setup(List<Seat> seats) {
         EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT);
         EntityManager entityManager = factory.createEntityManager();
-        Set<String> categories = new HashSet<>();
         entityManager.getTransaction().begin();
         for (Seat seat : seats) {
-            categories.add(seat.getCategory());
             entityManager.persist(new SeatEntity(seat.getCategory(), seat.getSector(), seat.getRow(), seat.getNumber()));
         }
-
-        seatCache.buildCaches(categories);
-
-        List<SeatEntity> seatEntities = entityManager.createNamedQuery("SeatEntity.findAll", SeatEntity.class).getResultList();
-        seatCache.buildCache(seatEntities);
-
         entityManager.getTransaction().commit();
         entityManager.close();
     }
@@ -64,30 +65,7 @@ public class ReservationService {
     /* Makes a seat reservation. */
     public Seat[] makeReservation(String category, int numberOfSeats) {
 
-        List<SeatEntity> availableSeats = seatCache.getAllEmptySeatsFromCategory(category, numberOfSeats);
-        try {
-            entityManager.getTransaction().begin();
-            Seat[] seats = new Seat[numberOfSeats];
-            for (int i = 0; i < numberOfSeats; i++) {
-                SeatEntity entity = availableSeats.get(i);
-                seats[i] = new Seat(entity.getCategory(), entity.getSector(), entity.getRow(), entity.getNumber());
-                entity.setReserved(true);
-                entityManager.merge(entity);
-            }
-            entityManager.getTransaction().commit();
-            return seats;
-
-        } catch (OptimisticLockException | IndexOutOfBoundsException ex) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-            return null;
-        } catch (Exception ex) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-            return null;
-        }
+        return reservationStrategy.makeReservation(category, numberOfSeats);
     }
 
 
