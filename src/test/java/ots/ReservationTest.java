@@ -36,9 +36,8 @@ public class ReservationTest {
     private List<Seat> reservedSeats;
     private List<Reservation> reservations;
     private List<long[]> times;
-    private long startTime;
 
-    public void setup() throws Exception {
+    private void setup() throws Exception {
         categories = new ArrayList<>();
         availableSeats = new ArrayList<>();
         try (Scanner scanner = new Scanner(new FileReader(SEATS_FILE))) {
@@ -69,12 +68,12 @@ public class ReservationTest {
         ReservationService.cleanup();
     }
 
-    public void testReservationService(Class<? extends JPAReservationStrategy> reservationStrategy) throws Exception {
+    private void testReservationService(Class<? extends JPAReservationStrategy> reservationStrategy) throws Exception {
 
         // run reservation threads
         CyclicBarrier barrier = new CyclicBarrier(NUMBER_THREADS);
         List<ReservationThread> threads = new ArrayList<>();
-        startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         for (int i = 1; i <= NUMBER_THREADS; i++) {
             ReservationThread thread = new ReservationThread(reservationStrategy, categories, barrier);
             threads.add(thread);
@@ -123,26 +122,34 @@ public class ReservationTest {
         deviation = (long) Math.sqrt(deviation / times.size());
         long throughput = 1000 * reservations.size() / (endTime - startTime);
 
+        StringBuilder sb = new StringBuilder();
+
         // print results
+        sb.append("Seats").append("\n");
+        sb.append("  available:     ").append(availableSeats.size()).append("\n");
+        sb.append("  reserved:      ").append(reservedSeats.size()).append("\n");
+        sb.append("  remaining:     ").append(availableSeats.size() - reservedSeats.size()).append("\n");
+        sb.append("Reservations" + "\n");
+        sb.append("  total:         ").append(reservations.size()).append("\n");
+        sb.append("  rejected:      ").append(rejectedReservations).append("\n");
+        sb.append("  adjacent:      ").append(adjacentReservations).append("\n");
+        sb.append("  non-adjacent:  ").append(nonAdjacentReservations).append("\n");
+        sb.append("  incorrect:     ").append(incorrectReservations).append("\n");
+        sb.append("Latency Time" + "\n");
+        sb.append("  minimum:       ").append((double) minTime / 1000).append("s").append("\n");
+        sb.append("  maximum:       ").append((double) maxTime / 1000).append("s").append("\n");
+        sb.append("  average:       ").append((double) averageTime / 1000).append("s").append("\n");
+        sb.append("  deviation:     ").append((double) deviation / 1000).append("s").append("\n");
+        sb.append("\n");
+        sb.append("Total Time:      ").append((endTime - startTime) / 1000).append("s").append("\n");
+        sb.append("Throughput:      ").append(throughput).append(" requests/s").append("\n");
+
+        System.out.println(sb.toString());
+
         writer = new PrintWriter(new FileWriter(String.format(RESULTS_FILE, reservationStrategy.getSimpleName())));
-        writer.println("Seats");
-        writer.println("  available:     " + availableSeats.size());
-        writer.println("  reserved:      " + reservedSeats.size());
-        writer.println("  remaining:     " + (availableSeats.size() - reservedSeats.size()));
-        writer.println("Reservations");
-        writer.println("  total:         " + reservations.size());
-        writer.println("  rejected:      " + rejectedReservations);
-        writer.println("  adjacent:      " + adjacentReservations);
-        writer.println("  non-adjacent:  " + nonAdjacentReservations);
-        writer.println("  incorrect:     " + incorrectReservations);
-        writer.println("Latency Time");
-        writer.println("  minimum:       " + (double) minTime / 1000 + "s");
-        writer.println("  maximum:       " + (double) maxTime / 1000 + "s");
-        writer.println("  average:       " + (double) averageTime / 1000 + "s");
-        writer.println("  deviation:     " + (double) deviation / 1000 + "s");
-        writer.println();
-        writer.println("Total Time:      " + (endTime - startTime) / 1000 + "s");
-        writer.println("Throughput:      " + throughput + " requests/s");
+        for (String s : sb.toString().split("\n")) {
+            writer.println(s);
+        }
         writer.close();
     }
 
