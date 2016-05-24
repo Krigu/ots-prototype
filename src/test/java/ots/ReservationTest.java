@@ -125,6 +125,7 @@ public class ReservationTest {
         StringBuilder sb = new StringBuilder();
 
         // print results
+        sb.append("Strategy: ").append(reservationStrategy.getSimpleName()).append("\n");
         sb.append("Seats").append("\n");
         sb.append("  available:     ").append(availableSeats.size()).append("\n");
         sb.append("  reserved:      ").append(reservedSeats.size()).append("\n");
